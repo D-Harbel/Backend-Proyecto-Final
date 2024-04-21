@@ -8,6 +8,10 @@
     Producto agregado al carrito exitosamente.
 </div>
 
+<div id="sameUserProductMessage" class="same-User-Product-Message">
+    Eres el propietario de este producto, no puedes agregarlo a tu propio carrito.
+</div>
+
 <ul class="product-list">
     {{#each products.payload}}
     <li class="product-card">
@@ -67,7 +71,7 @@
         const userEmail = document.getElementById('userEmail').getAttribute('data-Email');
 
         if (userEmail === productOwner) {
-            console.log('Eres el propietario de este producto, no puedes agregarlo a tu');
+            sameUserProductMessage();
             return;
         }
 
@@ -89,5 +93,15 @@
         setTimeout(() => {
             addToCartMessage.style.display = 'none';
         }, 1300);
+    }
+
+    function sameUserProductMessage() {
+        const sameUserProductMessage = document.getElementById('sameUserProductMessage');
+        sameUserProductMessage.style.display = 'block';
+
+
+        setTimeout(() => {
+            sameUserProductMessage.style.display = 'none';
+        }, 1900);
     }
 </script>

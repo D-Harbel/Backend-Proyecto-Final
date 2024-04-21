@@ -6,6 +6,7 @@ const { isAdmin } = require('../middleware/authorization');
 
 module.exports = function (io) {
     router.post('/premium/:uid', isAdmin, UserController.changeUserRole);
+
     router.post('/:uid/documents', upload.fields([
         { name: 'documents',},
         { name: 'profile',},
@@ -14,5 +15,6 @@ module.exports = function (io) {
         { name: 'comprobante de estado de cuenta',}, 
         { name: 'identificacion',},  
     ]), UserController.uploadDocuments);
+    
     return router;
 }
