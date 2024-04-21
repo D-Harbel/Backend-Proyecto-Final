@@ -1,0 +1,124 @@
+<body class="purchase-page">
+    <div class="purchase-container">
+        <h2 class="purchase-title">Realizar compra</h2>
+
+        {{#if cart.products}}
+        {{#each cart.products}}
+        <div class="purchase-product-card">
+            <h3 class="purchase-product-title">{{this.product.title}}</h3>
+            <p class="purchase-product-details">Cantidad:
+                <input type="number" min="1" value="{{this.quantity}}" class="quantity-input"
+                    data-product-id="{{this._id}}">
+                <button class="update-quantity" data-product-id="{{this._id}}">Actualizar</button>
+                <button class="delete-product" data-product-id="{{this._id}}">Eliminar</button>
+            </p>
+        </div>
+        {{/each}}
+        {{else}}
+        <p>No hay productos en el carrito</p>
+        {{/if}}
+
+<div class="button-container">
+    <button class="delete-all-products" id="deleteAllProductsBtn">Vaciar carrito</button>
+    <form action="/api/carts/{{cartId}}/purchase" method="post">
+        <button type="submit" class="purchase-action-button" id="purchaseBtn">Comprar</button>
+    </form>
+</div>
+
+        <div id="cartIdContainer" data-cart-id="{{cartId}}"></div>
+    </div>
+
+    <script>
+        const cartId = document.getElementById('cartIdContainer').getAttribute('data-cart-id');
+
+        const deleteButtons = document.querySelectorAll('.delete-product');
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const productId = event.target.dataset.productId;
+                const confirmation = confirm('¿Seguro que quieres eliminar este producto del carrito?');
+
+                if (confirmation) {
+                    try {
+                        const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+                            method: 'DELETE'
+                        });
+                        console.log(productId)
+
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            const errorMessage = await response.text();
+                            alert(`Error al eliminar producto: ${errorMessage}`);
+                        }
+                    } catch (error) {
+                        console.error('Error al eliminar producto:', error);
+                        alert('Error al eliminar producto. Consulta la consola para más detalles.');
+                    }
+                }
+            });
+        });
+
+        const updateButtons = document.querySelectorAll('.update-quantity');
+
+        updateButtons.forEach(button => {
+            button.addEventListener('click', async (event) => {
+                const productId = event.target.dataset.productId;
+                const quantityInput = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+
+                const newQuantity = parseInt(quantityInput.value, 10);
+
+                if (isNaN(newQuantity) || newQuantity <= 0) {
+                    alert('La cantidad debe ser un número entero positivo.');
+                    return;
+                }
+
+                const confirmation = confirm(`¿Actualizar la cantidad del producto a ${newQuantity}?`);
+
+                if (confirmation) {
+                    try {
+                        const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ quantity: newQuantity })
+                        });
+
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            const errorMessage = await response.text();
+                            alert(`Error al actualizar cantidad: ${errorMessage}`);
+                        }
+                    } catch (error) {
+                        console.error('Error al actualizar cantidad:', error);
+                        alert('Error al actualizar cantidad. Consulta la consola para más detalles.');
+                    }
+                }
+            });
+        });
+
+        const deleteAllProductsBtn = document.getElementById('deleteAllProductsBtn');
+        deleteAllProductsBtn.addEventListener('click', async () => {
+            const confirmation = confirm('¿Seguro que quieres vaciar el carrito?');
+
+            if (confirmation) {
+                try {
+                    const response = await fetch(`/api/carts/${cartId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const errorMessage = await response.text();
+                        alert(`Error al vaciar carrito: ${errorMessage}`);
+                    }
+                } catch (error) {
+                    console.error('Error al vaciar carrito:', error);
+                    alert('Error al vaciar carrito. Consulta la consola para más detalles.');
+                }
+            }
+        });
+    </script>
+</body>
