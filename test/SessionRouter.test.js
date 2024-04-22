@@ -21,9 +21,6 @@ describe("Prueba routers products", async function () {
 
     describe("Pruebas endpoints", async function () {
 
-        beforeEach(async function () {
-            
-        })
 
         after(async () => {
             const user = await usuariosModelo.findOne({ email: 'TESTING@ROUTER.com' });

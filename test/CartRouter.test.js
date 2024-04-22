@@ -16,7 +16,7 @@ describe("Prueba routers cart", async function () {
         await mongoose.connect('mongodb+srv://I_Ulloa:Coderclave@ecommerce.6tv4mer.mongodb.net/?retryWrites=true&w=majority&dbName=ecommerce');
         agent = supertest.agent("http://localhost:3000");
         await agent.post("/api/sessions/login").send({
-            email: 'dgmnicolas@gmail.com',
+            email: 'test@test.com',
             password: '123'
         });
     });
@@ -66,8 +66,8 @@ describe("Prueba routers cart", async function () {
         });
 
         it("POST /api/carts/:cid/products", async () => {
-            const productId1 = "6585ae81fcb39ade17d125cc"; 
-            const productId2 = "6585b0650f8681eb5beb94f4"; 
+            const productId1 = "6622c4c15d08f891e4f11b5d"; 
+            const productId2 = "6622c6245d08f891e4f11b6b"; 
             const productToAdd1 = {
                 productId: productId1,
                 quantity: 1
@@ -134,8 +134,8 @@ describe("Prueba routers cart", async function () {
 
         it("PUT /api/carts/:cid", async () => {
             const newProducts = [
-                { product: "6585ae81fcb39ade17d125cc", quantity: 2 },
-                { product: "6585b0650f8681eb5beb94f4", quantity: 3 }
+                { product: "6622c4c15d08f891e4f11b5d", quantity: 2 },
+                { product: "6622c6245d08f891e4f11b6b", quantity: 3 }
             ];
             const response = await agent.put(`/api/carts/${cartId}`).send({ products: newProducts });
             expect(response.status).to.equal(200);
@@ -155,7 +155,7 @@ describe("Prueba routers cart", async function () {
             expect(response.body).to.have.property('ticket');
             expect(response.body.ticket).to.be.an('object');
             expect(response.body.ticket).to.have.property('code');
-            expect(response.body.ticket).to.have.property('amount').that.is.equal(6754);
+            expect(response.body.ticket).to.have.property('amount').that.is.equal(3700);
         });
 
 

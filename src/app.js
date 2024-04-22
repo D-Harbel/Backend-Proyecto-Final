@@ -120,6 +120,21 @@ app.use('/api/carts', CartRouter(io));
 app.use('/api/users', userRouter(io));
 app.use('/chat', ChatRouter(io, MessageDao));
 
+app.get('/views/carts/:cid', async (req, res) => {
+    const cid = req.params.cid;
+    try {
+        const cart = await CartService.getCartById(cid);
+        if (cart) {
+            res.render('cart', { cart });
+        } else {
+            res.status(404).json({ error: 'Carrito no encontrado' });
+        }
+    } catch (error) {
+        logger.error(`Error al obtener el carrito con ID ${cid}:`, error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
+
 app.get('/users', isAdmin, async (req, res) => {
     try {
         const users = await usuariosModelo.find({ email: { $exists: true } }, 'first_name last_name email role').lean();
