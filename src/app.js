@@ -24,6 +24,8 @@ const config = require('./config/config');
 const generateMockProducts = require('./mocks/product.mocks');
 const { errorHandler } = require('./middleware/errorHandler');
 const { middLogg, logger } = require('./utils/winston');
+const { isAdmin } = require('./middleware/authorization')
+const usuariosModelo = require('./dao/models/usermodel');
 
 const swaggerJsdoc = require("swagger-jsdoc")
 const swaggerUi = require("swagger-ui-express")
@@ -49,6 +51,11 @@ const options = {
 }
 
 const specs = swaggerJsdoc(options)
+
+const checkAdmin = (req, res, next) => {
+    res.locals.isAdmin = req.session.usuario && req.session.usuario.role === 'admin';
+    next();
+};
 
 
 
@@ -77,16 +84,17 @@ app.use((req, res, next) => {
 });
 app.use(errorHandler)
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs))
+app.use(checkAdmin);
 
 app.get('/', (req, res) => {
     const isAuthenticated = req.session.usuario;
 
     if (!isAuthenticated) {
-        return res.redirect('/login');
+        return res.redirect('/login', );
     }
 
 
-    res.render('home');
+    res.render('home' );
 });
 
 const viewsPath = path.join(__dirname, 'views');
@@ -106,23 +114,18 @@ app.use('/api/github', SessionGithubRouter(io))
 app.use('/api/clientes', ClientRouter(io))
 
 
+
 app.use('/api/products', ProductRouter(io));
 app.use('/api/carts', CartRouter(io));
 app.use('/api/users', userRouter(io));
 app.use('/chat', ChatRouter(io, MessageDao));
 
-
-app.get('/views/carts/:cid', async (req, res) => {
-    const cid = req.params.cid;
+app.get('/users', isAdmin, async (req, res) => {
     try {
-        const cart = await CartService.getCartById(cid);
-        if (cart) {
-            res.render('cart', { cart });
-        } else {
-            res.status(404).json({ error: 'Carrito no encontrado' });
-        }
+        const users = await usuariosModelo.find({ email: { $exists: true } }, 'first_name last_name email role').lean();
+        res.render('users', { users });
     } catch (error) {
-        logger.error(`Error al obtener el carrito con ID ${cid}:`, error);
+        console.error('Error al obtener usuarios:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 });

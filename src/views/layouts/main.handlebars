@@ -23,7 +23,10 @@
         <a href="/api-docs" target="_blank">Documentación</a>
         <a href="/views/products">Productos</a>
         <a href="/purchase">Carrito</a>
-        <a href="/api/sessions/logout">Logout</a>
+        {{#if isAdmin}}
+        <a href="/users">Usuarios</a>
+        {{/if}}
+        <a href="/api/sessions/logout">Cerrar Sesion</a>
     </div>
     {{/unless}}
     <br> <br>

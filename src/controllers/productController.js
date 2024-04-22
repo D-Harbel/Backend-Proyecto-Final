@@ -2,6 +2,7 @@ const ProductService = require('../repository/product.service');
 const { Product } = require('../dao/index');
 const { CustomError } = require('../utils/CustomErrors');
 const { ErrorCodes } = require('../utils/errors');
+const { enviarEmail } = require('../mails/mails');
 const { STATUS_CODES, } = require('../utils/ErrorTypes');
 
 class ProductController {
@@ -186,12 +187,24 @@ class ProductController {
             if (usuario.role !== 'admin' && (usuario.role !== 'premium' || existingProduct.owner !== usuario.email)) {
                 return res.status(403).json({ error: 'Permiso denegado, intentas eliminar el producto de otro usuario' });
             }
+
+            const { title, owner } = existingProduct;
+
             await ProductService.deleteProduct(productId);
 
             req.io.emit('productDeleted', { productId });
 
             const products = await ProductService.getProducts();
             req.io.emit('updateProducts', products);
+
+            if (owner !== 'admin' && owner !== undefined) {
+                const userEmail = owner;
+
+                const subject = 'Producto eliminado de tu cuenta';
+                const message = `Hola,\n\nEl producto "${title}" que tenías en tu cuenta ha sido eliminado.\n\nAtentamente,\nEl equipo de nuestra tienda.`;
+
+                await enviarEmail(userEmail, subject, message);
+            }
 
             res.status(200).json({ message: 'Producto eliminado exitosamente' });
         } catch (error) {

@@ -6,6 +6,18 @@ class userController {
     constructor() {
         this.changeUserRole = this.changeUserRole.bind(this);
     }
+
+    async getAllUsers(req, res) {
+        try {
+            
+            const users = await UserModel.find({}, 'first_name last_name email role');
+            res.status(200).json(users);
+        } catch (error) {
+            console.error('Error al obtener usuarios:', error);
+            res.status(500).json({ error: 'Error interno del servidor' });
+        }
+    }
+
     async changeUserRole(req, res) {
         const userId = req.params.uid;
         const { role } = req.body;
@@ -25,9 +37,9 @@ class userController {
                 return res.status(400).json({ error: 'El usuario no ha cargado todos los documentos requeridos' });
             }
     
-            const updatedUser = await UserModel.findByIdAndUpdate(userId, { role }, { new: true });
+            await UserModel.findByIdAndUpdate(userId, { role }, { new: true });
     
-            return res.status(200).json(updatedUser);
+            return res.status(200).json({ message: 'Cambio de rol exitoso' });
         } catch (error) {
             console.error(`Error al cambiar el rol del usuario con ID ${userId}:`, error);
             res.status(500).json({ error: 'Error interno del servidor' });
@@ -86,6 +98,39 @@ class userController {
             return res.status(200).json(updatedUser);
         } catch (error) {
             console.error(`Error al subir documentos para el usuario con ID ${userId}:`, error);
+            res.status(500).json({ error: 'Error interno del servidor' });
+        }
+    }
+
+    
+
+    async clearInactiveUsers(req, res) {
+        try {
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - 2);
+
+            const result = await UserModel.deleteMany({ last_connection: { $lt: cutoffDate } });
+
+            res.status(200).json({ message: `Usuarios inactivos eliminados: ${result.deletedCount}` });
+        } catch (error) {
+            console.error('Error al limpiar usuarios inactivos:', error);
+            res.status(500).json({ error: 'Error interno del servidor' });
+        }
+    }
+
+    async deleteUser(req, res) {
+        const userId = req.params.uid;
+
+        try {
+            const deletedUser = await UserModel.findByIdAndDelete(userId);
+
+            if (!deletedUser) {
+                return res.status(404).json({ error: 'Usuario no encontrado' });
+            }
+
+            return res.status(200).json({ message: 'Usuario eliminado exitosamente' });
+        } catch (error) {
+            console.error(`Error al eliminar el usuario con ID ${userId}:`, error);
             res.status(500).json({ error: 'Error interno del servidor' });
         }
     }
